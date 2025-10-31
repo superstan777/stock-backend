@@ -1,30 +1,30 @@
 package server
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 )
 
-// Server represents the main HTTP server.
 type Server struct {
-	router *chi.Mux
-	port   int
+	Router *chi.Mux
 }
 
-// NewServer creates a new instance of Server.
-func NewServer(port int) *Server {
+func NewServer() *Server {
 	s := &Server{
-		router: chi.NewRouter(),
-		port:   port,
+		Router: chi.NewRouter(),
 	}
-	s.routes() // attach all routes and middleware
+
+	// Ustawiamy trasy
+	s.routes()
+
 	return s
 }
 
-// Start runs the HTTP server.
-func (s *Server) Start() error {
-	fmt.Printf("Server is running on port %d...\n", s.port)
-	return http.ListenAndServe(fmt.Sprintf(":%d", s.port), s.router)
+func (s *Server) Start(addr string) {
+	log.Printf("Server running on %s", addr)
+	if err := http.ListenAndServe(addr, s.Router); err != nil {
+		log.Fatalf("could not start server: %v", err)
+	}
 }

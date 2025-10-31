@@ -6,10 +6,11 @@ import (
 )
 
 func (s *Server) routes() {
-	s.router.Use(LoggingMiddleware)
-	s.router.Use(CORSMiddleware)
 
-	s.router.Route("/api", func(r chi.Router) {
+	s.Router.Use(LoggingMiddleware)
+	s.Router.Use(CORSMiddleware)
+
+	s.Router.Route("/api", func(r chi.Router) {
 		r.Get("/health", handlers.HealthHandler)
 		r.Get("/users", handlers.UsersHandler)
 	})

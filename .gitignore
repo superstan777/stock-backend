@@ -1,0 +1,60 @@
+# =========================
+# Go build and cache files
+# =========================
+bin/
+build/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go workspace files
+go.work
+go.work.sum
+
+# =========================
+# Dependency directories
+# =========================
+vendor/
+
+# =========================
+# Environment and secrets
+# =========================
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+
+# =========================
+# IDE / Editor files
+# =========================
+# VSCode
+.vscode/
+# GoLand / IntelliJ
+.idea/
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# =========================
+# System files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Docker
+# =========================
+/docker-compose.override.yml
+*.pid
+*.log
+
+# =========================
+# Testing artifacts
+# =========================
+coverage.out
+*.coverprofile
