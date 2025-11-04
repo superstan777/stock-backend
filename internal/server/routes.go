@@ -3,8 +3,8 @@ package server
 import (
 	"github.com/go-chi/chi/v5"
 
+	deviceHandlers "github.com/superstan777/stock-backend/internal/devices/handlers"
 	userHandlers "github.com/superstan777/stock-backend/internal/users/handlers"
-	// deviceHandlers "github.com/superstan777/stock-backend/internal/devices/handlers"
 )
 
 func (s *Server) routes() {
@@ -13,7 +13,7 @@ func (s *Server) routes() {
 
 	s.Router.Route("/api", func(r chi.Router) {
 
-		// --- USERS ---
+
 		r.Route("/users", func(r chi.Router) {
 			r.Get("/", userHandlers.GetUsersHandler)
 			r.Get("/{id}", userHandlers.GetUserHandler)
@@ -22,15 +22,16 @@ func (s *Server) routes() {
 			r.Delete("/{id}", userHandlers.DeleteUserHandler)
 		})
 
-		// --- DEVICES (zakomentowane do czasu utworzenia modułu) ---
-		/*
 		r.Route("/devices", func(r chi.Router) {
-			r.Get("/", deviceHandlers.GetDevicesHandler)
+			r.Get("/computers", deviceHandlers.GetComputersHandler)
+   			r.Get("/monitors", deviceHandlers.GetMonitorsHandler)
+   			r.Get("/", deviceHandlers.GetAllDevicesHandler) 
+			r.Post("/", deviceHandlers.CreateDeviceHandler)
 			r.Get("/{id}", deviceHandlers.GetDeviceHandler)
-			r.Post("/", deviceHandlers.AddDeviceHandler)
 			r.Put("/{id}", deviceHandlers.UpdateDeviceHandler)
 			r.Delete("/{id}", deviceHandlers.DeleteDeviceHandler)
 		})
-		*/
+
+	
 	})
 }
