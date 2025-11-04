@@ -1,0 +1,20 @@
+package handlers
+
+import (
+	"encoding/json"
+	"net/http"
+
+	"github.com/superstan777/stock-backend/internal/db"
+	"github.com/superstan777/stock-backend/internal/devices/repository"
+)
+
+func GetAllDevicesHandler(w http.ResponseWriter, r *http.Request) {
+	devices, err := repository.GetAllDevices(db.DB)
+	if err != nil {
+		http.Error(w, "DB query error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(devices)
+}
