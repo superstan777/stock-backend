@@ -9,7 +9,9 @@ import (
 )
 
 // GetDevices pobiera urządzenia z filtrami i paginacją.
-func GetDevices(db *sql.DB, deviceType string, filters map[string]string, page, perPage int) ([]devices.Device, int, error) {
+func GetDevices(db *sql.DB, deviceType string, filters map[string]string, page int) ([]devices.Device, int, error) {
+	const perPage = 20 // stała liczba wyników na stronę
+
 	// --- PODSTAWOWE ZAPYTANIE ---
 	baseQuery := `
 		SELECT id, device_type, serial_number, model, order_id, install_status, created_at
@@ -129,76 +131,6 @@ func GetDevices(db *sql.DB, deviceType string, filters map[string]string, page, 
 	}
 
 	return devicesList, totalCount, nil
-}
-
-
-// --- GET devices by type + filters + pagination ---
-func GetDevicesByType(db *sql.DB, deviceType string, filters map[string][]string, page, perPage int) ([]devices.Device, int, error) {
-	var whereClauses []string
-	args := []interface{}{deviceType}
-	whereClauses = append(whereClauses, fmt.Sprintf("device_type = $%d", len(args)))
-
-	argIndex := len(args)
-
-	for key, values := range filters {
-		if len(values) == 0 {
-			continue
-		}
-		orParts := []string{}
-		for _, v := range values {
-			argIndex++
-			orParts = append(orParts, fmt.Sprintf("%s ILIKE $%d", key, argIndex))
-			args = append(args, v+"%")
-		}
-		whereClauses = append(whereClauses, "("+strings.Join(orParts, " OR ")+")")
-	}
-
-	whereSQL := ""
-	if len(whereClauses) > 0 {
-		whereSQL = "WHERE " + strings.Join(whereClauses, " AND ")
-	}
-
-	offset := (page - 1) * perPage
-	query := fmt.Sprintf(`
-		SELECT id, device_type, serial_number, model, order_id, install_status, created_at
-		FROM devices
-		%s
-		ORDER BY serial_number
-		LIMIT %d OFFSET %d
-	`, whereSQL, perPage, offset)
-
-	rows, err := db.Query(query, args...)
-	if err != nil {
-		return nil, 0, err
-	}
-	defer rows.Close()
-
-	var result []devices.Device
-	for rows.Next() {
-		var d devices.Device
-		if err := rows.Scan(
-			&d.ID,
-			&d.DeviceType,
-			&d.SerialNumber,
-			&d.Model,
-			&d.OrderID,
-			&d.InstallStatus,
-			&d.CreatedAt,
-		); err != nil {
-			return nil, 0, err
-		}
-		result = append(result, d)
-	}
-
-	// count total
-	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM devices %s", whereSQL)
-	row := db.QueryRow(countQuery, args...)
-	var total int
-	if err := row.Scan(&total); err != nil {
-		return nil, 0, err
-	}
-
-	return result, total, nil
 }
 
 
