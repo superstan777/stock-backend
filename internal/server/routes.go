@@ -4,6 +4,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	deviceHandlers "github.com/superstan777/stock-backend/internal/devices/handlers"
+	relationHandlers "github.com/superstan777/stock-backend/internal/relations/handlers"
 	userHandlers "github.com/superstan777/stock-backend/internal/users/handlers"
 	worknotesHandlers "github.com/superstan777/stock-backend/internal/worknotes/handlers"
 )
@@ -14,7 +15,7 @@ func (s *Server) routes() {
 
 	s.Router.Route("/api", func(r chi.Router) {
 
-
+		// --- USERS ---
 		r.Route("/users", func(r chi.Router) {
 			r.Get("/", userHandlers.GetUsersHandler)
 			r.Get("/{id}", userHandlers.GetUserHandler)
@@ -23,20 +24,30 @@ func (s *Server) routes() {
 			r.Delete("/{id}", userHandlers.DeleteUserHandler)
 		})
 
+		// --- DEVICES ---
 		r.Route("/devices", func(r chi.Router) {
 			r.Get("/computers", deviceHandlers.GetComputersHandler)
-   			r.Get("/monitors", deviceHandlers.GetMonitorsHandler)
-   			r.Get("/", deviceHandlers.GetAllDevicesHandler) 
+			r.Get("/monitors", deviceHandlers.GetMonitorsHandler)
+			r.Get("/", deviceHandlers.GetAllDevicesHandler)
 			r.Post("/", deviceHandlers.CreateDeviceHandler)
 			r.Get("/{id}", deviceHandlers.GetDeviceHandler)
 			r.Put("/{id}", deviceHandlers.UpdateDeviceHandler)
 			r.Delete("/{id}", deviceHandlers.DeleteDeviceHandler)
 		})
 
+		// --- WORKNOTES ---
 		r.Route("/worknotes", func(r chi.Router) {
 			r.Get("/", worknotesHandlers.GetWorknotesByTicketHandler)
 			r.Post("/", worknotesHandlers.CreateWorknoteHandler)
 		})
-	
+
+		// --- RELATIONS ---
+		r.Route("/relations", func(r chi.Router) {
+			r.Get("/", relationHandlers.GetAllRelationsHandler)
+			r.Get("/device/{device_id}", relationHandlers.GetRelationsByDeviceHandler)
+			r.Get("/user/{user_id}", relationHandlers.GetRelationsByUserHandler)
+			r.Post("/", relationHandlers.CreateRelationHandler)
+			r.Post("/{id}/end", relationHandlers.EndRelationHandler)
+		})
 	})
 }
