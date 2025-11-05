@@ -8,19 +8,67 @@ import (
 	"github.com/superstan777/stock-backend/internal/devices"
 )
 
-// --- GET all devices ---
-func GetAllDevices(db *sql.DB) ([]devices.Device, error) {
-	rows, err := db.Query(`
+// GetDevices pobiera urządzenia z filtrami i paginacją.
+func GetDevices(db *sql.DB, deviceType string, filters map[string]string, page, perPage int) ([]devices.Device, int, error) {
+	// --- PODSTAWOWE ZAPYTANIE ---
+	baseQuery := `
 		SELECT id, device_type, serial_number, model, order_id, install_status, created_at
 		FROM devices
-		ORDER BY device_type, serial_number
-	`)
+		WHERE 1=1
+	`
+	args := []interface{}{}
+	argIdx := 1
+
+	// --- opcjonalny filter device_type ---
+	if deviceType != "" {
+		baseQuery += fmt.Sprintf(" AND device_type = $%d", argIdx)
+		args = append(args, deviceType)
+		argIdx++
+	}
+
+	// --- DODATKOWE FILTRY ---
+	for key, value := range filters {
+		if value == "" {
+			continue
+		}
+		values := strings.Split(value, ",")
+		for i := range values {
+			values[i] = strings.TrimSpace(values[i])
+		}
+		if len(values) == 0 {
+			continue
+		}
+
+		if key == "install_status" {
+			placeholders := []string{}
+			for _, v := range values {
+				placeholders = append(placeholders, fmt.Sprintf("$%d", argIdx))
+				args = append(args, v)
+				argIdx++
+			}
+			baseQuery += fmt.Sprintf(" AND install_status IN (%s)", strings.Join(placeholders, ","))
+		} else {
+			baseQuery += fmt.Sprintf(" AND %s ILIKE $%d", key, argIdx)
+			args = append(args, values[0]+"%")
+			argIdx++
+		}
+	}
+
+	// --- SORTOWANIE ---
+	baseQuery += " ORDER BY device_type ASC, serial_number ASC"
+
+	// --- PAGINACJA ---
+	offset := (page - 1) * perPage
+	baseQuery += fmt.Sprintf(" LIMIT %d OFFSET %d", perPage, offset)
+
+	// --- WYKONANIE ZAPYTANIA ---
+	rows, err := db.Query(baseQuery, args...)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer rows.Close()
 
-	var result []devices.Device
+	var devicesList []devices.Device
 	for rows.Next() {
 		var d devices.Device
 		if err := rows.Scan(
@@ -32,11 +80,55 @@ func GetAllDevices(db *sql.DB) ([]devices.Device, error) {
 			&d.InstallStatus,
 			&d.CreatedAt,
 		); err != nil {
-			return nil, err
+			return nil, 0, err
 		}
-		result = append(result, d)
+		devicesList = append(devicesList, d)
 	}
-	return result, rows.Err()
+
+	// --- LICZENIE WSZYSTKICH PASUJĄCYCH URZĄDZEŃ ---
+	countQuery := "SELECT COUNT(*) FROM devices WHERE 1=1"
+	countArgs := []interface{}{}
+	argIdx = 1
+
+	if deviceType != "" {
+		countQuery += fmt.Sprintf(" AND device_type = $%d", argIdx)
+		countArgs = append(countArgs, deviceType)
+		argIdx++
+	}
+
+	for key, value := range filters {
+		if value == "" {
+			continue
+		}
+		values := strings.Split(value, ",")
+		for i := range values {
+			values[i] = strings.TrimSpace(values[i])
+		}
+		if len(values) == 0 {
+			continue
+		}
+
+		if key == "install_status" {
+			placeholders := []string{}
+			for _, v := range values {
+				placeholders = append(placeholders, fmt.Sprintf("$%d", argIdx))
+				countArgs = append(countArgs, v)
+				argIdx++
+			}
+			countQuery += fmt.Sprintf(" AND install_status IN (%s)", strings.Join(placeholders, ","))
+		} else {
+			countQuery += fmt.Sprintf(" AND %s ILIKE $%d", key, argIdx)
+			countArgs = append(countArgs, values[0]+"%")
+			argIdx++
+		}
+	}
+
+	var totalCount int
+	if err := db.QueryRow(countQuery, countArgs...).Scan(&totalCount); err != nil {
+		return nil, 0, err
+	}
+
+	return devicesList, totalCount, nil
 }
 
 

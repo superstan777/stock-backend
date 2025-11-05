@@ -27,9 +27,7 @@ func (s *Server) routes() {
 
 		// --- DEVICES ---
 		r.Route("/devices", func(r chi.Router) {
-			r.Get("/computers", deviceHandlers.GetComputersHandler)
-			r.Get("/monitors", deviceHandlers.GetMonitorsHandler)
-			r.Get("/", deviceHandlers.GetAllDevicesHandler)
+			r.Get("/", deviceHandlers.GetDevicesHandler)
 			r.Post("/", deviceHandlers.CreateDeviceHandler)
 			r.Get("/{id}", deviceHandlers.GetDeviceHandler)
 			r.Put("/{id}", deviceHandlers.UpdateDeviceHandler)
