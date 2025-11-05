@@ -44,7 +44,6 @@ func (s *Server) routes() {
 
 		// --- RELATIONS ---
 		r.Route("/relations", func(r chi.Router) {
-			r.Get("/", relationHandlers.GetAllRelationsHandler)
 			r.Get("/device/{device_id}", relationHandlers.GetRelationsByDeviceHandler)
 			r.Get("/user/{user_id}", relationHandlers.GetRelationsByUserHandler)
 			r.Post("/", relationHandlers.CreateRelationHandler)
