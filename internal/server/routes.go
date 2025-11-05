@@ -5,6 +5,7 @@ import (
 
 	deviceHandlers "github.com/superstan777/stock-backend/internal/devices/handlers"
 	userHandlers "github.com/superstan777/stock-backend/internal/users/handlers"
+	worknotesHandlers "github.com/superstan777/stock-backend/internal/worknotes/handlers"
 )
 
 func (s *Server) routes() {
@@ -32,6 +33,10 @@ func (s *Server) routes() {
 			r.Delete("/{id}", deviceHandlers.DeleteDeviceHandler)
 		})
 
+		r.Route("/worknotes", func(r chi.Router) {
+			r.Get("/", worknotesHandlers.GetWorknotesByTicketHandler)
+			r.Post("/", worknotesHandlers.CreateWorknoteHandler)
+		})
 	
 	})
 }
