@@ -2,37 +2,185 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/superstan777/stock-backend/internal/tickets"
 )
 
-// GetAll pobiera wszystkie tickety.
-func GetAll(db *sql.DB) ([]tickets.Ticket, error) {
-	rows, err := db.Query(`
-		SELECT id, number, title, description, caller_id, assigned_to, status, created_at, estimated_resolution_date, resolution_date
-		FROM tickets
-		ORDER BY created_at DESC
-	`)
+// GetTickets pobiera tickety z filtrowaniem, paginacją i JOINami do userów
+func GetTickets(db *sql.DB, filters map[string]string, page, perPage int) ([]tickets.TicketWithUsers, int, error) {
+	baseQuery := `
+		SELECT 
+			t.id,
+			t.number,
+			t.title,
+			t.description,
+			t.status,
+			t.created_at,
+			t.estimated_resolution_date,
+			t.resolution_date,
+			c.id AS caller_id,
+			c.email AS caller_email,
+			a.id AS assigned_id,
+			a.email AS assigned_email
+		FROM tickets t
+		LEFT JOIN users c ON t.caller_id = c.id
+		LEFT JOIN users a ON t.assigned_to = a.id
+		WHERE 1=1
+	`
+
+	args := []interface{}{}
+	argIdx := 1
+
+	// --- FILTRY ---
+	for key, value := range filters {
+		if value == "" {
+			continue
+		}
+
+		val := strings.TrimSpace(value)
+		switch key {
+		case "status":
+			baseQuery += fmt.Sprintf(" AND t.status ILIKE $%d", argIdx)
+			args = append(args, "%"+val+"%")
+			argIdx++
+
+		case "number":
+			baseQuery += fmt.Sprintf(" AND t.number = $%d", argIdx)
+			args = append(args, val)
+			argIdx++
+
+		case "title":
+			baseQuery += fmt.Sprintf(" AND t.title ILIKE $%d", argIdx)
+			args = append(args, "%"+val+"%")
+			argIdx++
+
+		case "caller_email":
+			baseQuery += fmt.Sprintf(" AND c.email ILIKE $%d", argIdx)
+			args = append(args, "%"+val+"%")
+			argIdx++
+
+		case "assigned_email":
+			baseQuery += fmt.Sprintf(" AND a.email ILIKE $%d", argIdx)
+			args = append(args, "%"+val+"%")
+			argIdx++
+
+		case "estimated_resolution_date":
+			if val == "null" {
+				baseQuery += " AND t.estimated_resolution_date IS NULL"
+			} else {
+				baseQuery += fmt.Sprintf(" AND DATE(t.estimated_resolution_date) = $%d", argIdx)
+				args = append(args, val)
+				argIdx++
+			}
+
+		case "resolution_date":
+			if val == "null" {
+				baseQuery += " AND t.resolution_date IS NULL"
+			} else {
+				baseQuery += fmt.Sprintf(" AND DATE(t.resolution_date) = $%d", argIdx)
+				args = append(args, val)
+				argIdx++
+			}
+		}
+	}
+
+	// --- SORTOWANIE I PAGINACJA ---
+	offset := (page - 1) * perPage
+	baseQuery += fmt.Sprintf(" ORDER BY t.created_at DESC LIMIT %d OFFSET %d", perPage, offset)
+
+	rows, err := db.Query(baseQuery, args...)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer rows.Close()
 
-	var list []tickets.Ticket
+	var ticketsList []tickets.TicketWithUsers
 	for rows.Next() {
-		var t tickets.Ticket
+		var t tickets.TicketWithUsers
+		var callerID, assignedID sql.NullString
+		var callerEmail, assignedEmail sql.NullString
+
 		if err := rows.Scan(
-			&t.ID, &t.Number, &t.Title, &t.Description,
-			&t.CallerID, &t.AssignedTo, &t.Status,
-			&t.CreatedAt, &t.EstimatedResolutionDate, &t.ResolutionDate,
+			&t.ID,
+			&t.Number,
+			&t.Title,
+			&t.Description,
+			&t.Status,
+			&t.CreatedAt,
+			&t.EstimatedResolutionDate,
+			&t.ResolutionDate,
+			&callerID,
+			&callerEmail,
+			&assignedID,
+			&assignedEmail,
 		); err != nil {
-			return nil, err
+			return nil, 0, err
 		}
-		list = append(list, t)
+
+		if callerID.Valid {
+			t.Caller = &tickets.User{
+				ID:    callerID.String,
+				Email: callerEmail.String,
+			}
+		}
+
+		if assignedID.Valid {
+			t.AssignedTo = &tickets.User{
+				ID:    assignedID.String,
+				Email: assignedEmail.String,
+			}
+		}
+
+		ticketsList = append(ticketsList, t)
 	}
-	return list, nil
+
+	// --- LICZENIE WSZYSTKICH PASUJĄCYCH ---
+	countQuery := `
+		SELECT COUNT(*)
+		FROM tickets t
+		LEFT JOIN users c ON t.caller_id = c.id
+		LEFT JOIN users a ON t.assigned_to = a.id
+		WHERE 1=1
+	`
+
+	countArgs := []interface{}{}
+	argIdx = 1
+	for key, value := range filters {
+		if value == "" {
+			continue
+		}
+
+		val := strings.TrimSpace(value)
+		switch key {
+		case "status":
+			countQuery += fmt.Sprintf(" AND t.status ILIKE $%d", argIdx)
+			countArgs = append(countArgs, "%"+val+"%")
+			argIdx++
+
+		case "title":
+			countQuery += fmt.Sprintf(" AND t.title ILIKE $%d", argIdx)
+			countArgs = append(countArgs, "%"+val+"%")
+			argIdx++
+
+		case "caller_email":
+			countQuery += fmt.Sprintf(" AND c.email ILIKE $%d", argIdx)
+			countArgs = append(countArgs, "%"+val+"%")
+			argIdx++
+		}
+	}
+
+	var totalCount int
+	if err := db.QueryRow(countQuery, countArgs...).Scan(&totalCount); err != nil {
+		return nil, 0, err
+	}
+
+	return ticketsList, totalCount, nil
 }
+
+
 
 // GetByID zwraca jeden ticket po ID.
 func GetByID(db *sql.DB, id string) (*tickets.Ticket, error) {
