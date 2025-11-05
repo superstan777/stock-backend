@@ -8,22 +8,30 @@ import (
 	"github.com/superstan777/stock-backend/internal/db"
 	"github.com/superstan777/stock-backend/internal/devices"
 	"github.com/superstan777/stock-backend/internal/devices/repository"
+	"github.com/superstan777/stock-backend/internal/utils/apiresponse"
 )
 
+// UpdateDeviceHandler obsługuje PUT /api/device/{id}
 func UpdateDeviceHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	if id == "" {
+		apiresponse.JSONError(w, http.StatusBadRequest, "Missing device ID")
+		return
+	}
 
 	var d devices.Device
 	if err := json.NewDecoder(r.Body).Decode(&d); err != nil {
-		http.Error(w, "Invalid JSON: "+err.Error(), http.StatusBadRequest)
+		apiresponse.JSONError(w, http.StatusBadRequest, "Invalid JSON: "+err.Error())
 		return
 	}
 
 	if err := repository.UpdateDevice(db.DB, id, &d); err != nil {
-		http.Error(w, "DB update error: "+err.Error(), http.StatusInternalServerError)
+		apiresponse.JSONError(w, http.StatusInternalServerError, "Database update error: "+err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"status": "updated"})
+	apiresponse.JSONSuccess(w, http.StatusOK, "Device updated successfully", map[string]string{
+		"id":     id,
+		"status": "updated",
+	})
 }
