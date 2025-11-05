@@ -28,11 +28,13 @@ func (s *Server) routes() {
 		// --- DEVICES ---
 		r.Route("/devices", func(r chi.Router) {
 			r.Get("/", deviceHandlers.GetDevicesHandler)
+			r.Get("/{device_type}", deviceHandlers.GetDevicesHandler)
 			r.Post("/", deviceHandlers.CreateDeviceHandler)
-			r.Get("/{id}", deviceHandlers.GetDeviceHandler)
-			r.Put("/{id}", deviceHandlers.UpdateDeviceHandler)
-			r.Delete("/{id}", deviceHandlers.DeleteDeviceHandler)
+			r.Get("/item/{id}", deviceHandlers.GetDeviceHandler)
+			r.Put("/item/{id}", deviceHandlers.UpdateDeviceHandler)
+			r.Delete("/item/{id}", deviceHandlers.DeleteDeviceHandler)
 		})
+
 
 		// --- WORKNOTES ---
 		r.Route("/worknotes", func(r chi.Router) {

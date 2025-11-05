@@ -5,21 +5,50 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/superstan777/stock-backend/internal/db"
 	"github.com/superstan777/stock-backend/internal/devices/repository"
 )
 
-// GetDevicesHandler obsługuje GET /api/devices
-// Można filtrować query params, np: ?device_type=Computer&serial_number=ABC&page=1
+// GetDevicesHandler obsługuje GET /api/devices/{device_type}
+// Przykład: /api/devices/computers?page=1&serial_number=ABC
 func GetDevicesHandler(w http.ResponseWriter, r *http.Request) {
+	deviceType := chi.URLParam(r, "device_type")
+
 	query := r.URL.Query()
 
-	deviceType := query.Get("device_type") // opcjonalny
+	// --- jeśli deviceType jest pusty, to zwracamy wszystkie ---
+	if deviceType == "" {
+		// pobierz wszystkie urządzenia (np. bez filtra device_type)
+		devicesList, count, err := repository.GetDevices(db.DB, "", nil, 1)
+		if err != nil {
+			http.Error(w, "DB query error: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"data":  devicesList,
+			"count": count,
+		})
+		return
+	}
+
+	// --- walidacja liczby mnogiej ---
+	validTypes := map[string]string{
+		"computers": "computer",
+		"monitors":  "monitor",
+	}
+
+	singular, ok := validTypes[deviceType]
+	if !ok {
+		http.Error(w, "Invalid device type", http.StatusBadRequest)
+		return
+	}
 
 	// --- FILTRY ---
 	filters := make(map[string]string)
 	for key, values := range query {
-		if key == "page" || key == "device_type" {
+		if key == "page" {
 			continue
 		}
 		if len(values) > 0 {
@@ -36,7 +65,7 @@ func GetDevicesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// --- POBRANIE DANYCH ---
-	devicesList, count, err := repository.GetDevices(db.DB, deviceType, filters, page)
+	devicesList, count, err := repository.GetDevices(db.DB, singular, filters, page)
 	if err != nil {
 		http.Error(w, "DB query error: "+err.Error(), http.StatusInternalServerError)
 		return
