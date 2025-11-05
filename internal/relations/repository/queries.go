@@ -133,7 +133,7 @@ func End(db *sql.DB, id string) error {
 }
 
 // --- CHECK ACTIVE ---
-func HasActive(db *sql.DB, deviceID string) (bool, error) {
+func HasActiveRelation(db *sql.DB, deviceID string) (bool, error) {
 	query := `
 		SELECT 1 FROM relations 
 		WHERE device_id = $1 AND end_date IS NULL 
