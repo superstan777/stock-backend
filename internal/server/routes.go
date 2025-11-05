@@ -5,6 +5,7 @@ import (
 
 	deviceHandlers "github.com/superstan777/stock-backend/internal/devices/handlers"
 	relationHandlers "github.com/superstan777/stock-backend/internal/relations/handlers"
+	ticketHandlers "github.com/superstan777/stock-backend/internal/tickets/handlers"
 	userHandlers "github.com/superstan777/stock-backend/internal/users/handlers"
 	worknotesHandlers "github.com/superstan777/stock-backend/internal/worknotes/handlers"
 )
@@ -48,6 +49,15 @@ func (s *Server) routes() {
 			r.Get("/user/{user_id}", relationHandlers.GetRelationsByUserHandler)
 			r.Post("/", relationHandlers.CreateRelationHandler)
 			r.Post("/{id}/end", relationHandlers.EndRelationHandler)
+		})
+
+		// --- TICKETS ---
+		r.Route("/tickets", func(r chi.Router) {
+			r.Get("/", ticketHandlers.GetTicketsHandler)
+			r.Get("/{id}", ticketHandlers.GetTicketHandler)
+			r.Post("/", ticketHandlers.AddTicketHandler)
+			r.Put("/{id}", ticketHandlers.UpdateTicketHandler)
+			r.Delete("/{id}", ticketHandlers.DeleteTicketHandler)
 		})
 	})
 }
