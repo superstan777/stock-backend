@@ -7,22 +7,27 @@ import (
 	"github.com/superstan777/stock-backend/internal/db"
 	"github.com/superstan777/stock-backend/internal/tickets"
 	"github.com/superstan777/stock-backend/internal/tickets/repository"
+	"github.com/superstan777/stock-backend/internal/utils/apiresponse"
 )
 
-func AddTicketHandler(w http.ResponseWriter, r *http.Request) {
+func CreateTicketHandler(w http.ResponseWriter, r *http.Request) {
 	var input tickets.TicketInsert
+
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, "Invalid input: "+err.Error(), http.StatusBadRequest)
+		apiresponse.JSONError(w, http.StatusBadRequest, "Invalid JSON: "+err.Error())
 		return
 	}
 
-	t, err := repository.Insert(db.DB, input)
+	if input.Title == "" {
+		apiresponse.JSONError(w, http.StatusBadRequest, "Ticket title is required")
+		return
+	}
+
+	ticket, err := repository.Insert(db.DB, input)
 	if err != nil {
-		http.Error(w, "DB insert error: "+err.Error(), http.StatusInternalServerError)
+		apiresponse.JSONError(w, http.StatusInternalServerError, "Database insert error: "+err.Error())
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(t)
+	apiresponse.JSONSuccess(w, http.StatusCreated, "Ticket created successfully", ticket)
 }

@@ -58,7 +58,7 @@ func (s *Server) routes() {
 		r.Route("/tickets", func(r chi.Router) {
 			r.Get("/", ticketHandlers.GetTicketsHandler)
 			r.Get("/{id}", ticketHandlers.GetTicketHandler)
-			r.Post("/", ticketHandlers.AddTicketHandler)
+			r.Post("/", ticketHandlers.CreateTicketHandler)
 			r.Put("/{id}", ticketHandlers.UpdateTicketHandler)
 			r.Delete("/{id}", ticketHandlers.DeleteTicketHandler)
 		})

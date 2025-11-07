@@ -8,27 +8,27 @@ import (
 	"github.com/superstan777/stock-backend/internal/db"
 	"github.com/superstan777/stock-backend/internal/tickets"
 	"github.com/superstan777/stock-backend/internal/tickets/repository"
+	"github.com/superstan777/stock-backend/internal/utils/apiresponse"
 )
 
 func UpdateTicketHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		http.Error(w, "missing id", http.StatusBadRequest)
+		apiresponse.JSONError(w, http.StatusBadRequest, "Missing ticket ID")
 		return
 	}
 
 	var input tickets.TicketUpdate
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, "Invalid input: "+err.Error(), http.StatusBadRequest)
+		apiresponse.JSONError(w, http.StatusBadRequest, "Invalid JSON: "+err.Error())
 		return
 	}
 
 	t, err := repository.Update(db.DB, id, input)
 	if err != nil {
-		http.Error(w, "DB update error: "+err.Error(), http.StatusInternalServerError)
+		apiresponse.JSONError(w, http.StatusInternalServerError, "Database update error: "+err.Error())
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(t)
+	apiresponse.JSONSuccess(w, http.StatusOK, "Ticket updated successfully", t)
 }
