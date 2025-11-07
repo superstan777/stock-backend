@@ -20,7 +20,7 @@ func (s *Server) routes() {
 		r.Route("/users", func(r chi.Router) {
 			r.Get("/", userHandlers.GetUsersHandler)
 			r.Get("/{id}", userHandlers.GetUserHandler)
-			r.Post("/", userHandlers.AddUserHandler)
+			r.Post("/", userHandlers.CreateUserHandler)
 			r.Put("/{id}", userHandlers.UpdateUserHandler)
 			r.Delete("/{id}", userHandlers.DeleteUserHandler)
 		})

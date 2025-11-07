@@ -1,25 +1,31 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/superstan777/stock-backend/internal/db"
 	"github.com/superstan777/stock-backend/internal/users/repository"
+	"github.com/superstan777/stock-backend/internal/utils/apiresponse"
 )
 
 func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	if id == "" {
+		apiresponse.JSONError(w, http.StatusBadRequest, "Missing user ID")
+		return
+	}
+
 	user, err := repository.GetByID(db.DB, id)
 	if err != nil {
-		http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)
+		apiresponse.JSONError(w, http.StatusInternalServerError, "Database query error: "+err.Error())
 		return
 	}
+
 	if user == nil {
-		http.Error(w, "User not found", http.StatusNotFound)
+		apiresponse.JSONError(w, http.StatusNotFound, "User not found")
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
+
+	apiresponse.JSONSuccess(w, http.StatusOK, "User fetched successfully", user)
 }
