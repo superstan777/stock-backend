@@ -6,6 +6,7 @@ import (
 	deviceHandlers "github.com/superstan777/stock-backend/internal/devices/handlers"
 	relationHandlers "github.com/superstan777/stock-backend/internal/relations/handlers"
 	ticketHandlers "github.com/superstan777/stock-backend/internal/tickets/handlers"
+	statsHandlers "github.com/superstan777/stock-backend/internal/tickets/stats/handlers"
 	userHandlers "github.com/superstan777/stock-backend/internal/users/handlers"
 	worknotesHandlers "github.com/superstan777/stock-backend/internal/worknotes/handlers"
 )
@@ -28,16 +29,15 @@ func (s *Server) routes() {
 		// --- DEVICES ---
 		r.Route("/devices", func(r chi.Router) {
 			r.Get("/", deviceHandlers.GetDevicesHandler)
-    		r.Get("/{device_type}", deviceHandlers.GetDevicesHandler) 
-    		r.Post("/", deviceHandlers.CreateDeviceHandler)       
+			r.Get("/{device_type}", deviceHandlers.GetDevicesHandler)
+			r.Post("/", deviceHandlers.CreateDeviceHandler)
 		})
 
 		r.Route("/device", func(r chi.Router) {
-    		r.Get("/{id}", deviceHandlers.GetDeviceHandler)
-    		r.Put("/{id}", deviceHandlers.UpdateDeviceHandler)
-    		r.Delete("/{id}", deviceHandlers.DeleteDeviceHandler)
+			r.Get("/{id}", deviceHandlers.GetDeviceHandler)
+			r.Put("/{id}", deviceHandlers.UpdateDeviceHandler)
+			r.Delete("/{id}", deviceHandlers.DeleteDeviceHandler)
 		})
-
 
 		// --- WORKNOTES ---
 		r.Route("/worknotes", func(r chi.Router) {
@@ -49,7 +49,7 @@ func (s *Server) routes() {
 		r.Route("/relations", func(r chi.Router) {
 			r.Get("/device/{device_id}", relationHandlers.GetRelationsByDeviceHandler)
 			r.Get("/user/{user_id}", relationHandlers.GetRelationsByUserHandler)
-			r.Get("/device/{device_id}/active", relationHandlers.HasActiveRelationHandler) 
+			r.Get("/device/{device_id}/active", relationHandlers.HasActiveRelationHandler)
 			r.Post("/", relationHandlers.CreateRelationHandler)
 			r.Post("/{id}/end", relationHandlers.EndRelationHandler)
 		})
@@ -61,6 +61,13 @@ func (s *Server) routes() {
 			r.Post("/", ticketHandlers.CreateTicketHandler)
 			r.Put("/{id}", ticketHandlers.UpdateTicketHandler)
 			r.Delete("/{id}", ticketHandlers.DeleteTicketHandler)
+
+			// --- TICKETS STATS ---
+			r.Route("/stats", func(r chi.Router) {
+				r.Get("/resolved", statsHandlers.GetResolvedTicketsStatsHandler)
+				r.Get("/open", statsHandlers.GetOpenTicketsStatsHandler)
+				r.Get("/operators", statsHandlers.GetTicketsByOperatorHandler)
+			})
 		})
 	})
 }

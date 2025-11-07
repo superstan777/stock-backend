@@ -9,7 +9,11 @@ import (
 	"github.com/superstan777/stock-backend/internal/tickets"
 )
 
-// GetTickets pobiera tickety z filtrowaniem, paginacją i JOINami do userów
+// ==============================
+// CRUD + STATYSTYKI TICKETÓW
+// ==============================
+
+// GetTickets – pobiera tickety z filtrowaniem, paginacją i JOINami do userów
 func GetTickets(db *sql.DB, filters map[string]string, page, perPage int) ([]tickets.TicketWithUsers, int, error) {
 	baseQuery := `
 		SELECT 
@@ -34,7 +38,6 @@ func GetTickets(db *sql.DB, filters map[string]string, page, perPage int) ([]tic
 	args := []interface{}{}
 	argIdx := 1
 
-	// --- FILTRY ---
 	for key, value := range filters {
 		if value == "" {
 			continue
@@ -43,51 +46,35 @@ func GetTickets(db *sql.DB, filters map[string]string, page, perPage int) ([]tic
 		val := strings.TrimSpace(value)
 		switch key {
 		case "status":
-			baseQuery += fmt.Sprintf(" AND t.status ILIKE $%d", argIdx)
-			args = append(args, "%"+val+"%")
-			argIdx++
-
+			// --- obsługa wielu statusów jak w GetDevices ---
+			statuses := strings.Split(val, ",")
+			placeholders := []string{}
+			for _, s := range statuses {
+				s = strings.TrimSpace(s)
+				placeholders = append(placeholders, fmt.Sprintf("$%d::ticket_status", argIdx))
+				args = append(args, s)
+				argIdx++
+			}
+			baseQuery += fmt.Sprintf(" AND t.status IN (%s)", strings.Join(placeholders, ","))
 		case "number":
 			baseQuery += fmt.Sprintf(" AND t.number = $%d", argIdx)
 			args = append(args, val)
 			argIdx++
-
 		case "title":
 			baseQuery += fmt.Sprintf(" AND t.title ILIKE $%d", argIdx)
 			args = append(args, "%"+val+"%")
 			argIdx++
-
 		case "caller_email":
 			baseQuery += fmt.Sprintf(" AND c.email ILIKE $%d", argIdx)
 			args = append(args, "%"+val+"%")
 			argIdx++
-
 		case "assigned_email":
 			baseQuery += fmt.Sprintf(" AND a.email ILIKE $%d", argIdx)
 			args = append(args, "%"+val+"%")
 			argIdx++
-
-		case "estimated_resolution_date":
-			if val == "null" {
-				baseQuery += " AND t.estimated_resolution_date IS NULL"
-			} else {
-				baseQuery += fmt.Sprintf(" AND DATE(t.estimated_resolution_date) = $%d", argIdx)
-				args = append(args, val)
-				argIdx++
-			}
-
-		case "resolution_date":
-			if val == "null" {
-				baseQuery += " AND t.resolution_date IS NULL"
-			} else {
-				baseQuery += fmt.Sprintf(" AND DATE(t.resolution_date) = $%d", argIdx)
-				args = append(args, val)
-				argIdx++
-			}
 		}
 	}
 
-	// --- SORTOWANIE I PAGINACJA ---
 	offset := (page - 1) * perPage
 	baseQuery += fmt.Sprintf(" ORDER BY t.created_at DESC LIMIT %d OFFSET %d", perPage, offset)
 
@@ -104,69 +91,57 @@ func GetTickets(db *sql.DB, filters map[string]string, page, perPage int) ([]tic
 		var callerEmail, assignedEmail sql.NullString
 
 		if err := rows.Scan(
-			&t.ID,
-			&t.Number,
-			&t.Title,
-			&t.Description,
-			&t.Status,
-			&t.CreatedAt,
-			&t.EstimatedResolutionDate,
-			&t.ResolutionDate,
-			&callerID,
-			&callerEmail,
-			&assignedID,
-			&assignedEmail,
+			&t.ID, &t.Number, &t.Title, &t.Description, &t.Status,
+			&t.CreatedAt, &t.EstimatedResolutionDate, &t.ResolutionDate,
+			&callerID, &callerEmail, &assignedID, &assignedEmail,
 		); err != nil {
 			return nil, 0, err
 		}
 
 		if callerID.Valid {
-			t.Caller = &tickets.User{
-				ID:    callerID.String,
-				Email: callerEmail.String,
-			}
+			t.Caller = &tickets.User{ID: callerID.String, Email: callerEmail.String}
 		}
-
 		if assignedID.Valid {
-			t.AssignedTo = &tickets.User{
-				ID:    assignedID.String,
-				Email: assignedEmail.String,
-			}
+			t.AssignedTo = &tickets.User{ID: assignedID.String, Email: assignedEmail.String}
 		}
-
 		ticketsList = append(ticketsList, t)
 	}
 
-	// --- LICZENIE WSZYSTKICH PASUJĄCYCH ---
-	countQuery := `
-		SELECT COUNT(*)
-		FROM tickets t
-		LEFT JOIN users c ON t.caller_id = c.id
-		LEFT JOIN users a ON t.assigned_to = a.id
-		WHERE 1=1
-	`
-
+	// --- liczenie wszystkich pasujących rekordów ---
+	countQuery := "SELECT COUNT(*) FROM tickets t WHERE 1=1"
 	countArgs := []interface{}{}
 	argIdx = 1
+
 	for key, value := range filters {
 		if value == "" {
 			continue
 		}
-
 		val := strings.TrimSpace(value)
 		switch key {
 		case "status":
-			countQuery += fmt.Sprintf(" AND t.status ILIKE $%d", argIdx)
-			countArgs = append(countArgs, "%"+val+"%")
+			statuses := strings.Split(val, ",")
+			placeholders := []string{}
+			for _, s := range statuses {
+				s = strings.TrimSpace(s)
+				placeholders = append(placeholders, fmt.Sprintf("$%d::ticket_status", argIdx))
+				countArgs = append(countArgs, s)
+				argIdx++
+			}
+			countQuery += fmt.Sprintf(" AND t.status IN (%s)", strings.Join(placeholders, ","))
+		case "number":
+			countQuery += fmt.Sprintf(" AND t.number = $%d", argIdx)
+			countArgs = append(countArgs, val)
 			argIdx++
-
 		case "title":
 			countQuery += fmt.Sprintf(" AND t.title ILIKE $%d", argIdx)
 			countArgs = append(countArgs, "%"+val+"%")
 			argIdx++
-
 		case "caller_email":
 			countQuery += fmt.Sprintf(" AND c.email ILIKE $%d", argIdx)
+			countArgs = append(countArgs, "%"+val+"%")
+			argIdx++
+		case "assigned_email":
+			countQuery += fmt.Sprintf(" AND a.email ILIKE $%d", argIdx)
 			countArgs = append(countArgs, "%"+val+"%")
 			argIdx++
 		}
@@ -180,14 +155,14 @@ func GetTickets(db *sql.DB, filters map[string]string, page, perPage int) ([]tic
 	return ticketsList, totalCount, nil
 }
 
+// ----------------------
+// CRUD (GetByID, Insert, Update, Delete)
+// ----------------------
 
-
-// GetByID zwraca jeden ticket po ID.
 func GetByID(db *sql.DB, id string) (*tickets.Ticket, error) {
 	row := db.QueryRow(`
 		SELECT id, number, title, description, caller_id, assigned_to, status, created_at, estimated_resolution_date, resolution_date
-		FROM tickets
-		WHERE id = $1
+		FROM tickets WHERE id = $1
 	`, id)
 
 	var t tickets.Ticket
@@ -204,7 +179,6 @@ func GetByID(db *sql.DB, id string) (*tickets.Ticket, error) {
 	return &t, nil
 }
 
-// Insert dodaje nowy ticket.
 func Insert(db *sql.DB, input tickets.TicketInsert) (*tickets.Ticket, error) {
 	createdAt := time.Now()
 	if input.CreatedAt != nil {
@@ -213,10 +187,11 @@ func Insert(db *sql.DB, input tickets.TicketInsert) (*tickets.Ticket, error) {
 
 	row := db.QueryRow(`
 		INSERT INTO tickets (title, description, caller_id, assigned_to, status, created_at, estimated_resolution_date, resolution_date)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
 		RETURNING id, number, title, description, caller_id, assigned_to, status, created_at, estimated_resolution_date, resolution_date
 	`,
-		input.Title, input.Description, input.CallerID, input.AssignedTo, input.Status, createdAt, input.EstimatedResolutionDate, input.ResolutionDate,
+		input.Title, input.Description, input.CallerID, input.AssignedTo,
+		input.Status, createdAt, input.EstimatedResolutionDate, input.ResolutionDate,
 	)
 
 	var t tickets.Ticket
@@ -230,11 +205,10 @@ func Insert(db *sql.DB, input tickets.TicketInsert) (*tickets.Ticket, error) {
 	return &t, nil
 }
 
-// Update aktualizuje ticket.
 func Update(db *sql.DB, id string, input tickets.TicketUpdate) (*tickets.Ticket, error) {
 	row := db.QueryRow(`
-		UPDATE tickets
-		SET title = COALESCE($1, title),
+		UPDATE tickets SET
+		    title = COALESCE($1, title),
 		    description = COALESCE($2, description),
 		    caller_id = COALESCE($3, caller_id),
 		    assigned_to = COALESCE($4, assigned_to),
@@ -244,7 +218,8 @@ func Update(db *sql.DB, id string, input tickets.TicketUpdate) (*tickets.Ticket,
 		WHERE id = $8
 		RETURNING id, number, title, description, caller_id, assigned_to, status, created_at, estimated_resolution_date, resolution_date
 	`,
-		input.Title, input.Description, input.CallerID, input.AssignedTo, input.Status, input.EstimatedResolutionDate, input.ResolutionDate, id,
+		input.Title, input.Description, input.CallerID, input.AssignedTo,
+		input.Status, input.EstimatedResolutionDate, input.ResolutionDate, id,
 	)
 
 	var t tickets.Ticket
@@ -258,7 +233,6 @@ func Update(db *sql.DB, id string, input tickets.TicketUpdate) (*tickets.Ticket,
 	return &t, nil
 }
 
-// Delete usuwa ticket po ID.
 func Delete(db *sql.DB, id string) error {
 	_, err := db.Exec(`DELETE FROM tickets WHERE id = $1`, id)
 	return err
