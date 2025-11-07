@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/superstan777/stock-backend/internal/tickets"
 )
@@ -180,18 +179,12 @@ func GetByID(db *sql.DB, id string) (*tickets.Ticket, error) {
 }
 
 func Insert(db *sql.DB, input tickets.TicketInsert) (*tickets.Ticket, error) {
-	createdAt := time.Now()
-	if input.CreatedAt != nil {
-		createdAt = *input.CreatedAt
-	}
-
 	row := db.QueryRow(`
-		INSERT INTO tickets (title, description, caller_id, assigned_to, status, created_at, estimated_resolution_date, resolution_date)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+		INSERT INTO tickets (title, description, caller_id)
+		VALUES ($1, $2, $3)
 		RETURNING id, number, title, description, caller_id, assigned_to, status, created_at, estimated_resolution_date, resolution_date
 	`,
-		input.Title, input.Description, input.CallerID, input.AssignedTo,
-		input.Status, createdAt, input.EstimatedResolutionDate, input.ResolutionDate,
+		input.Title, input.Description, input.CallerID,
 	)
 
 	var t tickets.Ticket
@@ -202,6 +195,7 @@ func Insert(db *sql.DB, input tickets.TicketInsert) (*tickets.Ticket, error) {
 	); err != nil {
 		return nil, err
 	}
+
 	return &t, nil
 }
 

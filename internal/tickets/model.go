@@ -16,15 +16,9 @@ type Ticket struct {
 }
 
 type TicketInsert struct {
-	Number                  *int       `db:"number" json:"number"`
-	Title                   string     `db:"title" json:"title"`
-	Description             *string    `db:"description" json:"description"`
-	CallerID                *string    `db:"caller_id" json:"caller_id"`
-	AssignedTo              *string    `db:"assigned_to" json:"assigned_to"`
-	Status                  string     `db:"status" json:"status"`
-	CreatedAt               *time.Time `db:"created_at" json:"created_at"`
-	EstimatedResolutionDate *time.Time `db:"estimated_resolution_date" json:"estimated_resolution_date"`
-	ResolutionDate          *time.Time `db:"resolution_date" json:"resolution_date"`
+	Title       string  `db:"title" json:"title"`
+	Description *string `db:"description" json:"description"`
+	CallerID    *string `db:"caller_id" json:"caller_id"`
 }
 
 type TicketUpdate struct {
