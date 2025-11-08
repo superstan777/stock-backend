@@ -47,11 +47,17 @@ func (s *Server) routes() {
 
 		// --- RELATIONS ---
 		r.Route("/relations", func(r chi.Router) {
-			r.Get("/device/{device_id}", relationHandlers.GetRelationsByDeviceHandler)
-			r.Get("/user/{user_id}", relationHandlers.GetRelationsByUserHandler)
-			r.Get("/device/{device_id}/active", relationHandlers.HasActiveRelationHandler)
 			r.Post("/", relationHandlers.CreateRelationHandler)
-			r.Post("/{id}/end", relationHandlers.EndRelationHandler)
+			r.Patch("/{id}/end", relationHandlers.EndRelationHandler)
+		
+			r.Route("/devices/{device_id}/relations", func(r chi.Router) {
+				r.Get("/", relationHandlers.GetRelationsByDeviceHandler)
+				r.Get("/active", relationHandlers.HasActiveRelationHandler)
+			})
+
+			r.Route("/users/{user_id}/relations", func(r chi.Router) {
+				r.Get("/", relationHandlers.GetRelationsByUserHandler)
+			})
 		})
 
 		// --- TICKETS ---
