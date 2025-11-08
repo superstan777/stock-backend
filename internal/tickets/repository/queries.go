@@ -158,23 +158,51 @@ func GetTickets(db *sql.DB, filters map[string]string, page, perPage int) ([]tic
 // CRUD (GetByID, Insert, Update, Delete)
 // ----------------------
 
-func GetByID(db *sql.DB, id string) (*tickets.Ticket, error) {
-	row := db.QueryRow(`
-		SELECT id, number, title, description, caller_id, assigned_to, status, created_at, estimated_resolution_date, resolution_date
-		FROM tickets WHERE id = $1
-	`, id)
+func GetByID(db *sql.DB, id string) (*tickets.TicketWithUsers, error) {
+	query := `
+		SELECT 
+			t.id,
+			t.number,
+			t.title,
+			t.description,
+			t.status,
+			t.created_at,
+			t.estimated_resolution_date,
+			t.resolution_date,
+			c.id AS caller_id,
+			c.email AS caller_email,
+			a.id AS assigned_id,
+			a.email AS assigned_email
+		FROM tickets t
+		LEFT JOIN users c ON t.caller_id = c.id
+		LEFT JOIN users a ON t.assigned_to = a.id
+		WHERE t.id = $1
+	`
 
-	var t tickets.Ticket
+	row := db.QueryRow(query, id)
+
+	var t tickets.TicketWithUsers
+	var callerID, assignedID sql.NullString
+	var callerEmail, assignedEmail sql.NullString
+
 	if err := row.Scan(
-		&t.ID, &t.Number, &t.Title, &t.Description,
-		&t.CallerID, &t.AssignedTo, &t.Status,
+		&t.ID, &t.Number, &t.Title, &t.Description, &t.Status,
 		&t.CreatedAt, &t.EstimatedResolutionDate, &t.ResolutionDate,
+		&callerID, &callerEmail, &assignedID, &assignedEmail,
 	); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
 		return nil, err
 	}
+
+	if callerID.Valid {
+		t.Caller = &tickets.User{ID: callerID.String, Email: callerEmail.String}
+	}
+	if assignedID.Valid {
+		t.AssignedTo = &tickets.User{ID: assignedID.String, Email: assignedEmail.String}
+	}
+
 	return &t, nil
 }
 
