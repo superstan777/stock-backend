@@ -16,14 +16,14 @@ type RelationInsert struct {
 	DeviceID  string     `json:"device_id"`
 	UserID    string     `json:"user_id"`
 	StartDate time.Time  `json:"start_date"`
-	EndDate   *time.Time `json:"end_date,omitempty"`
+	EndDate   *time.Time `json:"end_date"`
 }
 
 // RelationWithDetails może być użyty przy JOIN-ach — np. z userem lub device
 type RelationWithDetails struct {
 	ID        string     `json:"id"`
 	StartDate time.Time  `json:"start_date"`
-	EndDate   *time.Time `json:"end_date,omitempty"`
+	EndDate   *time.Time `json:"end_date"`
 
 	Device DeviceInfo `json:"device"`
 	User   UserInfo   `json:"user"`

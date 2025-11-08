@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/superstan777/stock-backend/internal/db"
-	"github.com/superstan777/stock-backend/internal/relations/repository"
+	"github.com/superstan777/stock-backend/internal/relations/users/repository"
 )
 
 func GetRelationsByUserHandler(w http.ResponseWriter, r *http.Request) {
