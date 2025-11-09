@@ -30,5 +30,6 @@ func UpdateTicketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	apiresponse.JSONSuccess(w, http.StatusOK, "Ticket updated successfully", t)
+	// Zwracamy spójną odpowiedź dla update
+	apiresponse.JSONUpdated(w, t)
 }

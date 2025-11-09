@@ -33,5 +33,6 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	apiresponse.JSONSuccess(w, http.StatusCreated, "User created successfully", user)
+	// Zwracamy spójną odpowiedź dla create
+	apiresponse.JSONCreated(w, user)
 }

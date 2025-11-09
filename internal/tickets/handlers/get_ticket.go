@@ -26,5 +26,8 @@ func GetTicketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	apiresponse.JSONSuccess(w, http.StatusOK, "Ticket fetched successfully", ticket)
+	// Zwracamy dane ticketu w spójnym formacie
+	apiresponse.JSONSuccess(w, http.StatusOK, ticket, nil)
+
+
 }

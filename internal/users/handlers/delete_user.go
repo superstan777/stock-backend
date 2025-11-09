@@ -21,8 +21,6 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	apiresponse.JSONSuccess(w, http.StatusOK, "User deleted successfully", map[string]string{
-		"id":     id,
-		"status": "deleted",
-	})
+	// Używamy spójnego helpera dla delete
+	apiresponse.JSONDeleted(w, id)
 }

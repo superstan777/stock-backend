@@ -30,8 +30,6 @@ func UpdateDeviceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	apiresponse.JSONSuccess(w, http.StatusOK, "Device updated successfully", map[string]string{
-		"id":     id,
-		"status": "updated",
-	})
+	// Sukces – spójny komunikat update
+	apiresponse.JSONUpdated(w, d)
 }

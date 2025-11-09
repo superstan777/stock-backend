@@ -27,5 +27,6 @@ func GetDeviceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	apiresponse.JSONSuccess(w, http.StatusOK, "Device fetched successfully", device)
+	// Pojedynczy obiekt → meta = nil
+	apiresponse.JSONSuccess(w, http.StatusOK, device, nil)
 }

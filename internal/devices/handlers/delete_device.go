@@ -22,8 +22,6 @@ func DeleteDeviceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	apiresponse.JSONSuccess(w, http.StatusOK, "Device deleted successfully", map[string]string{
-		"id":     id,
-		"status": "deleted",
-	})
+	// Sukces – spójny komunikat delete
+	apiresponse.JSONDeleted(w, id)
 }

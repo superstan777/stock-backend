@@ -9,6 +9,7 @@ import (
 	"github.com/superstan777/stock-backend/internal/utils/apiresponse"
 )
 
+// GetRelationsByDeviceHandler obsługuje GET /api/relations/devices/{device_id}
 func GetRelationsByDeviceHandler(w http.ResponseWriter, r *http.Request) {
 	deviceID := chi.URLParam(r, "device_id")
 	if deviceID == "" {
@@ -22,10 +23,6 @@ func GetRelationsByDeviceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(list) == 0 {
-		apiresponse.JSONSuccess(w, http.StatusOK, "No relations found for this device", []interface{}{})
-		return
-	}
-
-	apiresponse.JSONSuccess(w, http.StatusOK, "Relations fetched successfully", list)
+	// Zwracamy dane bez paginacji, meta = nil
+	apiresponse.JSONSuccess(w, http.StatusOK, list, nil)
 }

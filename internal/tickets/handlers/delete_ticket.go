@@ -21,8 +21,6 @@ func DeleteTicketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	apiresponse.JSONSuccess(w, http.StatusOK, "Ticket deleted successfully", map[string]string{
-		"id":     id,
-		"status": "deleted",
-	})
+	// Spójna odpowiedź dla delete
+	apiresponse.JSONDeleted(w, id)
 }

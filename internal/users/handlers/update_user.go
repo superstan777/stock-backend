@@ -8,23 +8,27 @@ import (
 	"github.com/superstan777/stock-backend/internal/db"
 	"github.com/superstan777/stock-backend/internal/users"
 	"github.com/superstan777/stock-backend/internal/users/repository"
+	"github.com/superstan777/stock-backend/internal/utils/apiresponse"
 )
 
 func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+	if id == "" {
+		apiresponse.JSONError(w, http.StatusBadRequest, "Missing user ID")
+		return
+	}
 
 	var input users.UserUpdate
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, "Invalid JSON: "+err.Error(), http.StatusBadRequest)
+		apiresponse.JSONError(w, http.StatusBadRequest, "Invalid JSON: "+err.Error())
 		return
 	}
 
 	user, err := repository.Update(db.DB, id, input)
 	if err != nil {
-		http.Error(w, "DB update error: "+err.Error(), http.StatusInternalServerError)
+		apiresponse.JSONError(w, http.StatusInternalServerError, "Database update error: "+err.Error())
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
+	apiresponse.JSONUpdated(w, user)
 }

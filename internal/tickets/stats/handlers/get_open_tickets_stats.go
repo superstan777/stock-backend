@@ -15,5 +15,6 @@ func GetOpenTicketsStatsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	apiresponse.JSONSuccess(w, http.StatusOK, "Open tickets stats fetched successfully", data)
+	// Zwracamy dane statystyczne, meta nil bo brak paginacji
+	apiresponse.JSONSuccess(w, http.StatusOK, data, nil)
 }

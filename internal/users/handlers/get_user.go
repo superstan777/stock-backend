@@ -27,5 +27,6 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	apiresponse.JSONSuccess(w, http.StatusOK, "User fetched successfully", user)
+	// Zwracamy tylko dane użytkownika, bez dodatkowego komunikatu
+	apiresponse.JSONSuccess(w, http.StatusOK, user, nil)
 }

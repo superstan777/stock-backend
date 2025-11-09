@@ -17,9 +17,10 @@ func GetWorknotesByTicketHandler(w http.ResponseWriter, r *http.Request) {
 
 	notes, err := repository.GetWorknotesByTicket(db.DB, ticketID)
 	if err != nil {
-		apiresponse.JSONError(w, http.StatusInternalServerError, "DB query error: "+err.Error())
+		apiresponse.JSONError(w, http.StatusInternalServerError, "Database query error: "+err.Error())
 		return
 	}
 
-	apiresponse.JSONSuccess(w, http.StatusOK, "Worknotes fetched successfully", notes)
+	// Zwracamy dane jako lista, meta nil bo brak paginacji
+	apiresponse.JSONSuccess(w, http.StatusOK, notes, nil)
 }

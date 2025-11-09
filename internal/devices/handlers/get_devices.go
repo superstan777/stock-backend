@@ -41,32 +41,15 @@ func GetDevicesHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// --- Jeśli deviceType pusty → zwróć wszystkie urządzenia ---
-	if deviceType == "" {
-		devicesList, count, err := repository.GetDevices(db.DB, "", filters, page)
-		if err != nil {
-			apiresponse.JSONError(w, http.StatusInternalServerError, "Database query error: "+err.Error())
+	// --- Walidacja device_type ---
+	var singular string
+	if deviceType != "" {
+		var ok bool
+		singular, ok = validTypes[deviceType]
+		if !ok {
+			apiresponse.JSONError(w, http.StatusBadRequest, "Invalid device type: "+deviceType)
 			return
 		}
-
-		meta := map[string]interface{}{
-			"count":       count,                      
-			"current_page": page,                       
-			"total_pages":  (count + 20 - 1) / 20,     
-		}
-
-		apiresponse.JSONSuccess(w, http.StatusOK, "Devices fetched successfully", map[string]interface{}{
-			"devices": devicesList,
-			"meta":    meta,
-		})
-		return
-	}
-
-	// --- Walidacja device_type ---
-	singular, ok := validTypes[deviceType]
-	if !ok {
-		apiresponse.JSONError(w, http.StatusBadRequest, "Invalid device type: "+deviceType)
-		return
 	}
 
 	// --- Pobranie danych z repozytorium ---
@@ -76,14 +59,14 @@ func GetDevicesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	meta := map[string]interface{}{
-		"count":       count,                      
-		"current_page": page,                       
-		"total_pages":  (count + 20 - 1) / 20,     
+	// --- Obliczanie metadanych paginacji ---
+	meta := &apiresponse.Meta{
+		Count:       count,
+		CurrentPage: page,
+		TotalPages:  (count + 20 - 1) / 20,
+		PerPage:     20,
 	}
 
-	apiresponse.JSONSuccess(w, http.StatusOK, "Devices fetched successfully", map[string]interface{}{
-		"devices": devicesList,
-		"meta":    meta,
-	})
+	// --- Zwrócenie ujednoliconej odpowiedzi ---
+	apiresponse.JSONSuccess(w, http.StatusOK, devicesList, meta)
 }

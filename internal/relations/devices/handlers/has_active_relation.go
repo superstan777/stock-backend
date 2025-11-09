@@ -9,6 +9,7 @@ import (
 	"github.com/superstan777/stock-backend/internal/utils/apiresponse"
 )
 
+// HasActiveRelationHandler obsługuje GET /api/relations/devices/{device_id}/active
 func HasActiveRelationHandler(w http.ResponseWriter, r *http.Request) {
 	deviceID := chi.URLParam(r, "device_id")
 	if deviceID == "" {
@@ -22,7 +23,6 @@ func HasActiveRelationHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	apiresponse.JSONSuccess(w, http.StatusOK, "Active relation status fetched successfully", map[string]bool{
-		"active": active,
-	})
+	// Zwracamy dedykowany format dla hasActiveRelation
+	apiresponse.JSONHasActiveRelation(w, http.StatusOK, active)
 }

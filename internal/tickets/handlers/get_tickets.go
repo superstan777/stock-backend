@@ -26,6 +26,7 @@ func GetTicketsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Parsowanie filtrów z query
 	filters := make(map[string]string)
 	for key, values := range query {
 		if key == "page" || key == "per_page" {
@@ -36,21 +37,21 @@ func GetTicketsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Pobranie listy ticketów z repozytorium
 	ticketsList, total, err := repository.GetTickets(db.DB, filters, page, perPage)
 	if err != nil {
 		apiresponse.JSONError(w, http.StatusInternalServerError, "Database query error: "+err.Error())
 		return
 	}
 
-	meta := map[string]interface{}{
-		"count":        total,
-		"current_page": page,
-		"total_pages":  (total + perPage - 1) / perPage, 
-		"per_page":     perPage,
+	// Przygotowanie meta do paginacji
+	meta := &apiresponse.Meta{
+		Count:       total,
+		CurrentPage: page,
+		TotalPages:  (total + perPage - 1) / perPage,
+		PerPage:     perPage,
 	}
 
-	apiresponse.JSONSuccess(w, http.StatusOK, "Tickets fetched successfully", map[string]interface{}{
-		"tickets": ticketsList,
-		"meta":    meta,
-	})
+	apiresponse.JSONSuccess(w, http.StatusOK, ticketsList, meta)
+
 }

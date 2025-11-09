@@ -20,7 +20,7 @@ func CreateDeviceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Walidacja (opcjonalna, możesz tu dodać np. sprawdzenie pól)
+	// Walidacja
 	if d.DeviceType == "" {
 		apiresponse.JSONError(w, http.StatusBadRequest, "Device type is required")
 		return
@@ -32,6 +32,6 @@ func CreateDeviceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Sukces – zwracamy 201 Created
-	apiresponse.JSONSuccess(w, http.StatusCreated, "Device created successfully", d)
+	// Sukces – spójny komunikat create
+	apiresponse.JSONCreated(w, d)
 }

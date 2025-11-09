@@ -12,16 +12,24 @@ import (
 func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 
+	// Paginate
 	page := 1
+	perPage := 20
 	if p := query.Get("page"); p != "" {
 		if parsed, err := strconv.Atoi(p); err == nil && parsed > 0 {
 			page = parsed
 		}
 	}
+	if p := query.Get("per_page"); p != "" {
+		if parsed, err := strconv.Atoi(p); err == nil && parsed > 0 {
+			perPage = parsed
+		}
+	}
 
+	// Filtry
 	filters := make(map[string]string)
 	for key, values := range query {
-		if key == "page" {
+		if key == "page" || key == "per_page" {
 			continue
 		}
 		if len(values) > 0 {
@@ -29,20 +37,20 @@ func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	usersList, count, err := repository.GetUsers(db.DB, filters, page, 20)
+	// Pobranie użytkowników
+	usersList, count, err := repository.GetUsers(db.DB, filters, page, perPage)
 	if err != nil {
 		apiresponse.JSONError(w, http.StatusInternalServerError, "Database query error: "+err.Error())
 		return
 	}
 
-	meta := map[string]interface{}{
-		"count":        count,
-		"current_page": page,
-		"total_pages":  (count + 20 - 1) / 20, 
+	meta := &apiresponse.Meta{
+		Count:       count,
+		CurrentPage: page,
+		TotalPages:  (count + perPage - 1) / perPage,
+		PerPage:     perPage,
 	}
 
-	apiresponse.JSONSuccess(w, http.StatusOK, "Users fetched successfully", map[string]interface{}{
-		"users": usersList,
-		"meta":  meta,
-	})
+	apiresponse.JSONSuccess(w, http.StatusOK, usersList, meta)
+
 }
