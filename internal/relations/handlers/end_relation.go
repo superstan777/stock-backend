@@ -21,6 +21,5 @@ func EndRelationHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Użycie nowego helpera JSONEnded
 	apiresponse.JSONEnded(w, id)
 }

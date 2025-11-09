@@ -9,7 +9,6 @@ import (
 	"github.com/superstan777/stock-backend/internal/utils/apiresponse"
 )
 
-// GetDeviceHandler obsługuje GET /api/device/{id}
 func GetDeviceHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -27,6 +26,5 @@ func GetDeviceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Pojedynczy obiekt → meta = nil
 	apiresponse.JSONSuccess(w, http.StatusOK, device, nil)
 }

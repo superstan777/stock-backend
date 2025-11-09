@@ -10,28 +10,23 @@ import (
 	"github.com/superstan777/stock-backend/internal/utils/apiresponse"
 )
 
-// CreateDeviceHandler obsługuje POST /api/devices
 func CreateDeviceHandler(w http.ResponseWriter, r *http.Request) {
 	var d devices.Device
 
-	// Dekodowanie JSON z body
 	if err := json.NewDecoder(r.Body).Decode(&d); err != nil {
 		apiresponse.JSONError(w, http.StatusBadRequest, "Invalid JSON: "+err.Error())
 		return
 	}
 
-	// Walidacja
 	if d.DeviceType == "" {
 		apiresponse.JSONError(w, http.StatusBadRequest, "Device type is required")
 		return
 	}
 
-	// Zapis w bazie danych
 	if err := repository.CreateDevice(db.DB, &d); err != nil {
 		apiresponse.JSONError(w, http.StatusInternalServerError, "Database insert error: "+err.Error())
 		return
 	}
 
-	// Sukces – spójny komunikat create
 	apiresponse.JSONCreated(w, d)
 }

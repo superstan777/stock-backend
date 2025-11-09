@@ -21,6 +21,5 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Używamy spójnego helpera dla delete
 	apiresponse.JSONDeleted(w, id)
 }

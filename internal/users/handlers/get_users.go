@@ -12,7 +12,6 @@ import (
 func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 
-	// Paginate
 	page := 1
 	perPage := 20
 	if p := query.Get("page"); p != "" {
@@ -26,7 +25,6 @@ func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Filtry
 	filters := make(map[string]string)
 	for key, values := range query {
 		if key == "page" || key == "per_page" {
@@ -37,7 +35,6 @@ func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Pobranie użytkowników
 	usersList, count, err := repository.GetUsers(db.DB, filters, page, perPage)
 	if err != nil {
 		apiresponse.JSONError(w, http.StatusInternalServerError, "Database query error: "+err.Error())
@@ -52,5 +49,4 @@ func GetUsersHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	apiresponse.JSONSuccess(w, http.StatusOK, usersList, meta)
-
 }

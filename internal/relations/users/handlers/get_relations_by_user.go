@@ -22,6 +22,5 @@ func GetRelationsByUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Zwracamy dane bez komunikatu, meta nil bo brak paginacji
 	apiresponse.JSONSuccess(w, http.StatusOK, list, nil)
 }

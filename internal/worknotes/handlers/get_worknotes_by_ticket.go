@@ -21,6 +21,5 @@ func GetWorknotesByTicketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Zwracamy dane jako lista, meta nil bo brak paginacji
 	apiresponse.JSONSuccess(w, http.StatusOK, notes, nil)
 }

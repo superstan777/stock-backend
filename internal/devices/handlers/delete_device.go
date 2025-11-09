@@ -9,7 +9,6 @@ import (
 	"github.com/superstan777/stock-backend/internal/utils/apiresponse"
 )
 
-// DeleteDeviceHandler obsługuje DELETE /api/device/{id}
 func DeleteDeviceHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -22,6 +21,5 @@ func DeleteDeviceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Sukces – spójny komunikat delete
 	apiresponse.JSONDeleted(w, id)
 }

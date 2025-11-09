@@ -5,7 +5,6 @@ import (
 	"net/http"
 )
 
-// Meta zawiera informacje o liczbie wyników i ewentualnie paginacji.
 type Meta struct {
 	Count       int `json:"count"`
 	CurrentPage int `json:"current_page,omitempty"`
@@ -13,24 +12,20 @@ type Meta struct {
 	PerPage     int `json:"per_page,omitempty"`
 }
 
-// Response to ujednolicona struktura odpowiedzi API (z danymi i metadanymi).
 type Response struct {
 	Data interface{} `json:"data,omitempty"`
 	Meta *Meta       `json:"meta,omitempty"`
 }
 
-// ErrorResponse to ujednolicona struktura błędu.
 type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
-// MessageResponse to uproszczona struktura odpowiedzi z komunikatem.
 type MessageResponse struct {
 	Message string      `json:"message"`
 	Data    interface{} `json:"data,omitempty"`
 }
 
-// JSONSuccess tworzy standardową odpowiedź z danymi i metadanymi (paginacja lub nie).
 func JSONSuccess(w http.ResponseWriter, status int, data interface{}, meta *Meta) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -40,7 +35,6 @@ func JSONSuccess(w http.ResponseWriter, status int, data interface{}, meta *Meta
 	})
 }
 
-// JSONError zwraca błąd API.
 func JSONError(w http.ResponseWriter, status int, errorMessage string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -49,7 +43,6 @@ func JSONError(w http.ResponseWriter, status int, errorMessage string) {
 	})
 }
 
-// JSONMessage zwraca prosty komunikat sukcesu dla create, update, delete
 func JSONMessage(w http.ResponseWriter, status int, message string, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -59,8 +52,6 @@ func JSONMessage(w http.ResponseWriter, status int, message string, data interfa
 	})
 }
 
-// Spójne helpery dla create, update, delete
-// Spójne helpery dla create, update, delete, end
 func JSONCreated(w http.ResponseWriter, data interface{}) {
 	JSONMessage(w, http.StatusCreated, "Created successfully", data)
 }
@@ -80,8 +71,6 @@ func JSONEnded(w http.ResponseWriter, id string) {
 	})
 }
 
-// JSONHasActiveRelation zwraca dedykowany obiekt dla endpointu hasActiveRelation
-// data.hasActiveRelation: true/false
 func JSONHasActiveRelation(w http.ResponseWriter, status int, active bool) {
 	JSONSuccess(w, status, map[string]bool{"hasActiveRelation": active}, nil)
 }

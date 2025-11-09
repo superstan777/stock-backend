@@ -29,6 +29,5 @@ func CreateTicketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Spójna odpowiedź dla create
 	apiresponse.JSONCreated(w, ticket)
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/superstan777/stock-backend/internal/utils/apiresponse"
 )
 
-// GetRelationsByDeviceHandler obsługuje GET /api/relations/devices/{device_id}
 func GetRelationsByDeviceHandler(w http.ResponseWriter, r *http.Request) {
 	deviceID := chi.URLParam(r, "device_id")
 	if deviceID == "" {
@@ -23,6 +22,5 @@ func GetRelationsByDeviceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Zwracamy dane bez paginacji, meta = nil
 	apiresponse.JSONSuccess(w, http.StatusOK, list, nil)
 }

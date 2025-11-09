@@ -16,7 +16,6 @@ func NewServer() *Server {
 		Router: chi.NewRouter(),
 	}
 
-	// Ustawiamy trasy
 	s.routes()
 
 	return s

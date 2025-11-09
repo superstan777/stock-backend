@@ -30,6 +30,5 @@ func UpdateTicketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Zwracamy spójną odpowiedź dla update
 	apiresponse.JSONUpdated(w, t)
 }

@@ -11,7 +11,6 @@ import (
 	"github.com/superstan777/stock-backend/internal/utils/apiresponse"
 )
 
-// UpdateDeviceHandler obsługuje PUT /api/device/{id}
 func UpdateDeviceHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -30,6 +29,5 @@ func UpdateDeviceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Sukces – spójny komunikat update
 	apiresponse.JSONUpdated(w, d)
 }
