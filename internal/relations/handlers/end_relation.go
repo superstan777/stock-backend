@@ -6,19 +6,20 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/superstan777/stock-backend/internal/db"
 	"github.com/superstan777/stock-backend/internal/relations/repository"
+	"github.com/superstan777/stock-backend/internal/utils/apiresponse"
 )
 
 func EndRelationHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		http.Error(w, "missing id", http.StatusBadRequest)
+		apiresponse.JSONError(w, http.StatusBadRequest, "Missing relation ID")
 		return
 	}
 
 	if err := repository.End(db.DB, id); err != nil {
-		http.Error(w, "DB update error: "+err.Error(), http.StatusInternalServerError)
+		apiresponse.JSONError(w, http.StatusInternalServerError, "Database update error: "+err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	apiresponse.JSONSuccess(w, http.StatusOK, "Relation ended successfully", nil)
 }

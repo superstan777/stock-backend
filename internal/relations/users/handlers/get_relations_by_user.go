@@ -1,27 +1,26 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/superstan777/stock-backend/internal/db"
 	"github.com/superstan777/stock-backend/internal/relations/users/repository"
+	"github.com/superstan777/stock-backend/internal/utils/apiresponse"
 )
 
 func GetRelationsByUserHandler(w http.ResponseWriter, r *http.Request) {
 	userID := chi.URLParam(r, "user_id")
 	if userID == "" {
-		http.Error(w, "missing user_id", http.StatusBadRequest)
+		apiresponse.JSONError(w, http.StatusBadRequest, "Missing user_id")
 		return
 	}
 
 	list, err := repository.GetByUser(db.DB, userID)
 	if err != nil {
-		http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)
+		apiresponse.JSONError(w, http.StatusInternalServerError, "Database query error: "+err.Error())
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(list)
+	apiresponse.JSONSuccess(w, http.StatusOK, "Relations fetched successfully", list)
 }
