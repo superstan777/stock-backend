@@ -33,7 +33,8 @@ func GetByUser(db *sql.DB, userID string) ([]relations.RelationWithDetails, erro
 	}
 	defer rows.Close()
 
-	var list []relations.RelationWithDetails
+	list := []relations.RelationWithDetails{} // zawsze inicjalizowana
+
 	for rows.Next() {
 		var rel relations.RelationWithDetails
 		if err := rows.Scan(
@@ -53,6 +54,8 @@ func GetByUser(db *sql.DB, userID string) ([]relations.RelationWithDetails, erro
 		}
 		list = append(list, rel)
 	}
+
+
 	return list, nil
 }
 

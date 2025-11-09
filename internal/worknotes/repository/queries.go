@@ -25,23 +25,23 @@ func GetWorknotesByTicket(db *sql.DB, ticketID string) ([]worknotes.WorknoteWith
 
 	rows, err := db.Query(query, ticketID)
 	if err != nil {
-		return nil, err
+		return []worknotes.WorknoteWithAuthor{}, err // zawsze zwracamy slice, nie nil
 	}
 	defer rows.Close()
 
-	var notes []worknotes.WorknoteWithAuthor
+	notes := []worknotes.WorknoteWithAuthor{} // inicjalizujemy pusty slice
 
 	for rows.Next() {
 		var n worknotes.WorknoteWithAuthor
 		var a worknotes.Author
 		if err := rows.Scan(&n.ID, &n.TicketID, &n.Note, &n.CreatedAt, &a.ID, &a.Email); err != nil {
-			return nil, err
+			return []worknotes.WorknoteWithAuthor{}, err
 		}
 		n.Author = a
 		notes = append(notes, n)
 	}
 
-	return notes, nil
+	return notes, nil // zawsze slice, nawet jeśli pusty
 }
 
 func AddWorknote(db *sql.DB, note worknotes.WorknoteInsert) (*worknotes.Worknote, error) {

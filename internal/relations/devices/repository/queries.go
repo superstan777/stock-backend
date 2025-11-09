@@ -33,7 +33,8 @@ func GetByDevice(db *sql.DB, deviceID string) ([]relations.RelationWithDetails, 
 	}
 	defer rows.Close()
 
-	var list []relations.RelationWithDetails
+	list := []relations.RelationWithDetails{} // zawsze inicjalizowana
+
 	for rows.Next() {
 		var rel relations.RelationWithDetails
 		if err := rows.Scan(
@@ -53,6 +54,7 @@ func GetByDevice(db *sql.DB, deviceID string) ([]relations.RelationWithDetails, 
 		}
 		list = append(list, rel)
 	}
+
 	return list, nil
 }
 
