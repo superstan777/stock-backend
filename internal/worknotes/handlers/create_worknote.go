@@ -5,29 +5,28 @@ import (
 	"net/http"
 
 	"github.com/superstan777/stock-backend/internal/db"
+	"github.com/superstan777/stock-backend/internal/utils/apiresponse"
 	"github.com/superstan777/stock-backend/internal/worknotes"
 	"github.com/superstan777/stock-backend/internal/worknotes/repository"
 )
 
-// POST /worknotes
 func CreateWorknoteHandler(w http.ResponseWriter, r *http.Request) {
 	var note worknotes.WorknoteInsert
 	if err := json.NewDecoder(r.Body).Decode(&note); err != nil {
-		http.Error(w, "invalid request body", http.StatusBadRequest)
+		apiresponse.JSONError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
 	if note.TicketID == "" || note.AuthorID == "" || note.Note == "" {
-		http.Error(w, "missing required fields", http.StatusBadRequest)
+		apiresponse.JSONError(w, http.StatusBadRequest, "Missing required fields")
 		return
 	}
 
 	newNote, err := repository.AddWorknote(db.DB, note)
 	if err != nil {
-		http.Error(w, "DB insert error: "+err.Error(), http.StatusInternalServerError)
+		apiresponse.JSONError(w, http.StatusInternalServerError, "DB insert error: "+err.Error())
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(newNote)
+	apiresponse.JSONSuccess(w, http.StatusCreated, "Worknote created successfully", newNote)
 }
