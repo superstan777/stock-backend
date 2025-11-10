@@ -8,7 +8,7 @@ type Ticket struct {
 	Title                   string     `db:"title" json:"title"`
 	Description              *string    `db:"description" json:"description"`
 	CallerID                *string    `db:"caller_id" json:"caller_id"`
-	AssignedTo              *string    `db:"assigned_to" json:"assigned_to"`
+	OperatorID              *string    `db:"operator_id" json:"operator_id"`
 	Status                  string     `db:"status" json:"status"`
 	CreatedAt               time.Time  `db:"created_at" json:"created_at"`
 	EstimatedResolutionDate *time.Time `db:"estimated_resolution_date" json:"estimated_resolution_date"`
@@ -25,7 +25,7 @@ type TicketUpdate struct {
 	Title                   *string    `db:"title" json:"title"`
 	Description             *string    `db:"description" json:"description"`
 	CallerID                *string    `db:"caller_id" json:"caller_id"`
-	AssignedTo              *string    `db:"assigned_to" json:"assigned_to"`
+	OperatorID              *string    `db:"operator_id" json:"operator_id"`
 	Status                  *string    `db:"status" json:"status"`
 	EstimatedResolutionDate *time.Time `db:"estimated_resolution_date" json:"estimated_resolution_date"`
 	ResolutionDate          *time.Time `db:"resolution_date" json:"resolution_date"`
@@ -47,5 +47,5 @@ type TicketWithUsers struct {
 	EstimatedResolutionDate *time.Time `json:"estimated_resolution_date"`
 	ResolutionDate          *time.Time `json:"resolution_date"`
 	Caller                  *User      `json:"caller"`
-	AssignedTo              *User      `json:"assigned_to"`
+	Operator                *User      `json:"operator"`
 }

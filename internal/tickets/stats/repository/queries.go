@@ -81,7 +81,7 @@ func GetTicketsByOperator(db *sql.DB) ([]stats.OperatorTicketsStats, error) {
 			u.email,
 			COUNT(*) AS count
 		FROM tickets t
-		LEFT JOIN users u ON t.assigned_to = u.id
+		LEFT JOIN users u ON t.operator_id = u.id
 		WHERE t.status NOT IN ('resolved', 'cancelled')
 		GROUP BY u.id, u.name, u.email
 	`
