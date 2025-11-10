@@ -1,0 +1,271 @@
+definitions:
+  apiresponse.CreatedResponse:
+    properties:
+      data: {}
+      message:
+        example: Created successfully
+        type: string
+    type: object
+  apiresponse.DeletedResponse:
+    properties:
+      data:
+        additionalProperties:
+          type: string
+        example:
+          '{"id"': '"123"}'
+        type: object
+      message:
+        example: Deleted successfully
+        type: string
+    type: object
+  apiresponse.ErrorResponse:
+    properties:
+      error:
+        example: Invalid request
+        type: string
+    type: object
+  apiresponse.Meta:
+    properties:
+      count:
+        type: integer
+      current_page:
+        type: integer
+      per_page:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  apiresponse.PaginatedResponse:
+    properties:
+      data:
+        description: Data contains the list of items
+      meta:
+        allOf:
+        - $ref: '#/definitions/apiresponse.Meta'
+        description: Meta contains pagination info
+    type: object
+  apiresponse.Response:
+    properties:
+      data: {}
+      meta:
+        $ref: '#/definitions/apiresponse.Meta'
+    type: object
+  apiresponse.UpdatedResponse:
+    properties:
+      data: {}
+      message:
+        example: Updated successfully
+        type: string
+    type: object
+  devices.Device:
+    properties:
+      created_at:
+        type: string
+      device_type:
+        type: string
+      id:
+        type: string
+      install_status:
+        type: string
+      model:
+        type: string
+      order_id:
+        type: string
+      serial_number:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /devices:
+    get:
+      consumes:
+      - application/json
+      description: Returns a paginated list of devices. Optionally filter by device
+        type or query parameters.
+      parameters:
+      - description: 'Page number for pagination (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: Optional filters (e.g. model, order_id, install_status)
+        in: query
+        name: filters
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiresponse.PaginatedResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apiresponse.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiresponse.ErrorResponse'
+      summary: Get list of devices
+      tags:
+      - devices
+    post:
+      consumes:
+      - application/json
+      description: Create a new device record in the database
+      parameters:
+      - description: Device object
+        in: body
+        name: device
+        required: true
+        schema:
+          $ref: '#/definitions/devices.Device'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/apiresponse.CreatedResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apiresponse.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiresponse.ErrorResponse'
+      summary: Create a new device
+      tags:
+      - devices
+  /devices/{device_type}:
+    get:
+      consumes:
+      - application/json
+      description: Returns a paginated list of devices. Optionally filter by device
+        type or query parameters.
+      parameters:
+      - description: Device type (computers | monitors)
+        in: path
+        name: device_type
+        type: string
+      - description: 'Page number for pagination (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: Optional filters (e.g. model, order_id, install_status)
+        in: query
+        name: filters
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiresponse.PaginatedResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apiresponse.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiresponse.ErrorResponse'
+      summary: Get list of devices
+      tags:
+      - devices
+  /devices/{id}:
+    delete:
+      description: Delete a device by its ID
+      parameters:
+      - description: Device ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiresponse.DeletedResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apiresponse.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiresponse.ErrorResponse'
+      summary: Delete a device
+      tags:
+      - devices
+    get:
+      consumes:
+      - application/json
+      description: Retrieve detailed information about a specific device using its
+        ID
+      parameters:
+      - description: Device ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response with device data in 'data' field (devices.Device)
+          schema:
+            $ref: '#/definitions/apiresponse.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apiresponse.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/apiresponse.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiresponse.ErrorResponse'
+      summary: Get a device by ID
+      tags:
+      - devices
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing device in the database by ID
+      parameters:
+      - description: Device ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated device data
+        in: body
+        name: device
+        required: true
+        schema:
+          $ref: '#/definitions/devices.Device'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiresponse.UpdatedResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/apiresponse.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/apiresponse.ErrorResponse'
+      summary: Update a device
+      tags:
+      - devices
+swagger: "2.0"

@@ -11,6 +11,18 @@ import (
 	"github.com/superstan777/stock-backend/internal/utils/apiresponse"
 )
 
+// UpdateDeviceHandler godoc
+// @Summary      Update a device
+// @Description  Updates an existing device in the database by ID
+// @Tags         devices
+// @Accept       json
+// @Produce      json
+// @Param        id     path      string             true  "Device ID"
+// @Param        device body      devices.Device     true  "Updated device data"
+// @Success      200  {object}  apiresponse.UpdatedResponse
+// @Failure      400  {object}  apiresponse.ErrorResponse
+// @Failure      500  {object}  apiresponse.ErrorResponse
+// @Router       /devices/{id} [put]
 func UpdateDeviceHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {

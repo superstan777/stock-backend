@@ -10,6 +10,17 @@ import (
 	"github.com/superstan777/stock-backend/internal/utils/apiresponse"
 )
 
+// CreateDeviceHandler godoc
+// @Summary Create a new device
+// @Description Create a new device record in the database
+// @Tags devices
+// @Accept json
+// @Produce json
+// @Param device body devices.Device true "Device object"
+// @Success 201 {object} apiresponse.CreatedResponse
+// @Failure 400 {object} apiresponse.ErrorResponse
+// @Failure 500 {object} apiresponse.ErrorResponse
+// @Router /devices [post]
 func CreateDeviceHandler(w http.ResponseWriter, r *http.Request) {
 	var d devices.Device
 

@@ -2,6 +2,8 @@ package server
 
 import (
 	"github.com/go-chi/chi/v5"
+	_ "github.com/superstan777/stock-backend/internal/docs" // import wygenerowanej dokumentacji Swagger
+	httpSwagger "github.com/swaggo/http-swagger"
 
 	devicesHandlers "github.com/superstan777/stock-backend/internal/devices/handlers"
 	relationsDevicesHandlers "github.com/superstan777/stock-backend/internal/relations/devices/handlers"
@@ -16,6 +18,11 @@ import (
 func (s *Server) routes() {
 	s.Router.Use(LoggingMiddleware)
 	s.Router.Use(CORSMiddleware)
+
+	// --- Swagger ---
+	s.Router.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8080/swagger/doc.json"), // zmień URL jeśli potrzebne
+	))
 
 	s.Router.Route("/api", func(r chi.Router) {
 
